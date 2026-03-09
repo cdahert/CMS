@@ -294,7 +294,7 @@ export default function AdminSettlements() {
                   borderRadius: "8px",
                   color: "hsl(var(--foreground))",
                 }}
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value) => formatCurrency(Number(value))}
               />
               <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Total" />
             </BarChart>

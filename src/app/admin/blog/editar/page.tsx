@@ -51,10 +51,10 @@ export default function AdminBlogEdit() {
         title: post.title,
         slug: post.slug,
         excerpt: post.excerpt ?? "",
-        content: post.content ?? "",
-        cover_url: post.cover_url ?? "",
+        content: typeof post.content === "string" ? post.content : JSON.stringify(post.content ?? ""),
+        cover_url: post.cover_image_url ?? "",
         tags: post.tags?.join(", ") ?? "",
-        status: post.status,
+        status: post.published ? "published" : "draft",
       });
     }
   }, [post]);
@@ -69,11 +69,11 @@ export default function AdminBlogEdit() {
           slug: form.slug,
           excerpt: form.excerpt || null,
           content: form.content,
-          cover_url: form.cover_url || null,
+          cover_image_url: form.cover_url || null,
           tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
-          status: form.status,
+          published: form.status === "published",
           published_at:
-            form.status === "published" && post?.status !== "published"
+            form.status === "published" && !post?.published
               ? new Date().toISOString()
               : post?.published_at,
           updated_at: new Date().toISOString(),

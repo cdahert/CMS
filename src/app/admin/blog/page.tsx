@@ -74,7 +74,7 @@ export default function AdminBlog() {
       const { error } = await supabase
         .from("blog_posts")
         .update({
-          status: published ? "published" : "draft",
+          published,
           published_at: published ? new Date().toISOString() : null,
           updated_at: new Date().toISOString(),
         })
@@ -159,14 +159,19 @@ export default function AdminBlog() {
                     <td className="px-4 py-3 font-medium text-foreground">{post.title}</td>
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{post.slug}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                          statusColors[post.status] ?? "bg-muted text-muted-foreground"
-                        )}
-                      >
-                        {statusLabels[post.status] ?? post.status}
-                      </span>
+                      {(() => {
+                        const status = post.published ? "published" : "draft";
+                        return (
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+                              statusColors[status] ?? "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {statusLabels[status] ?? status}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(post.published_at ?? post.created_at, {
@@ -183,11 +188,11 @@ export default function AdminBlog() {
                           onClick={() =>
                             togglePublishMutation.mutate({
                               id: post.id,
-                              published: post.status !== "published",
+                              published: !post.published,
                             })
                           }
                         >
-                          {post.status === "published" ? (
+                          {post.published ? (
                             <EyeOff className="h-4 w-4" />
                           ) : (
                             <Eye className="h-4 w-4" />

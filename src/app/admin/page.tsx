@@ -269,7 +269,7 @@ export default function AdminDashboard() {
                       borderRadius: "8px",
                       color: "hsl(var(--foreground))",
                     }}
-                    formatter={(value: number) => formatCurrency(value)}
+                    formatter={(value) => formatCurrency(Number(value))}
                   />
                   <Bar dataKey="ventas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Ventas" />
                   <Bar dataKey="comisiones" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} name="Comisiones" />

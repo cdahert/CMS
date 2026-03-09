@@ -238,8 +238,8 @@ export default function CommerceDashboard() {
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(value: number) => [
-                    formatCurrency(value),
+                  formatter={(value) => [
+                    formatCurrency(Number(value)),
                     "Ventas",
                   ]}
                   contentStyle={{
@@ -297,8 +297,8 @@ export default function CommerceDashboard() {
                   width={90}
                 />
                 <Tooltip
-                  formatter={(value: number) => [
-                    formatCurrency(value),
+                  formatter={(value) => [
+                    formatCurrency(Number(value)),
                     "Ventas",
                   ]}
                   contentStyle={{

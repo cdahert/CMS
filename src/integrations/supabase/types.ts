@@ -36,6 +36,7 @@ export interface Database {
           avatar_url?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       user_roles: {
         Row: {
@@ -54,6 +55,7 @@ export interface Database {
           user_id?: string;
           role?: AppRole;
         };
+        Relationships: [];
       };
       commerces: {
         Row: {
@@ -96,6 +98,7 @@ export interface Database {
           active?: boolean;
           updated_at?: string;
         };
+        Relationships: [];
       };
       commerce_members: {
         Row: {
@@ -117,6 +120,7 @@ export interface Database {
           user_id?: string;
           role?: string;
         };
+        Relationships: [];
       };
       commission_matrix: {
         Row: {
@@ -157,6 +161,7 @@ export interface Database {
           shipping_fixed?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       commission_matrix_history: {
         Row: {
@@ -187,6 +192,7 @@ export interface Database {
           new_value?: string | null;
           changed_by?: string | null;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -229,6 +235,7 @@ export interface Database {
           active?: boolean;
           updated_at?: string;
         };
+        Relationships: [];
       };
       prices: {
         Row: {
@@ -256,6 +263,7 @@ export interface Database {
           valid_from?: string;
           valid_until?: string | null;
         };
+        Relationships: [];
       };
       inventory_movements: {
         Row: {
@@ -286,6 +294,7 @@ export interface Database {
           reason?: string | null;
           created_by?: string | null;
         };
+        Relationships: [];
       };
       offers: {
         Row: {
@@ -337,6 +346,7 @@ export interface Database {
           single_use_per_customer?: boolean;
           categories?: string[];
         };
+        Relationships: [];
       };
       offer_products: {
         Row: {
@@ -353,6 +363,7 @@ export interface Database {
           offer_id?: string;
           product_id?: string;
         };
+        Relationships: [];
       };
       offer_commerces: {
         Row: {
@@ -369,6 +380,7 @@ export interface Database {
           offer_id?: string;
           commerce_id?: string;
         };
+        Relationships: [];
       };
       offer_redemptions: {
         Row: {
@@ -390,6 +402,7 @@ export interface Database {
           commerce_id?: string;
           customer_email?: string;
         };
+        Relationships: [];
       };
       bundles: {
         Row: {
@@ -417,6 +430,7 @@ export interface Database {
           price?: number;
           active?: boolean;
         };
+        Relationships: [];
       };
       bundle_items: {
         Row: {
@@ -436,6 +450,7 @@ export interface Database {
           product_id?: string;
           quantity?: number;
         };
+        Relationships: [];
       };
       settlements: {
         Row: {
@@ -499,6 +514,7 @@ export interface Database {
           approved_at?: string | null;
           paid_at?: string | null;
         };
+        Relationships: [];
       };
       activity_log: {
         Row: {
@@ -523,6 +539,7 @@ export interface Database {
           commerce_id?: string | null;
           details?: Json | null;
         };
+        Relationships: [];
       };
       blog_posts: {
         Row: {
@@ -568,6 +585,7 @@ export interface Database {
           published_at?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

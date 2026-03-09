@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Json } from "@/integrations/supabase/types";
 
 interface TiptapRendererProps {
@@ -72,17 +73,18 @@ function renderNode(node: TiptapNode, index: number): React.ReactNode {
       );
     case "heading": {
       const level = (node.attrs?.level as number) ?? 1;
-      const Tag = `h${level}` as keyof JSX.IntrinsicElements;
       const sizes: Record<number, string> = {
         1: "text-3xl font-bold mb-4",
         2: "text-2xl font-bold mb-3",
         3: "text-xl font-bold mb-2",
       };
-      return (
-        <Tag key={index} className={sizes[level] ?? sizes[1]}>
-          {children}
-        </Tag>
-      );
+      const className = sizes[level] ?? sizes[1];
+      if (level === 1) return <h1 key={index} className={className}>{children}</h1>;
+      if (level === 2) return <h2 key={index} className={className}>{children}</h2>;
+      if (level === 3) return <h3 key={index} className={className}>{children}</h3>;
+      if (level === 4) return <h4 key={index} className={className}>{children}</h4>;
+      if (level === 5) return <h5 key={index} className={className}>{children}</h5>;
+      return <h6 key={index} className={className}>{children}</h6>;
     }
     case "bulletList":
       return (
@@ -119,10 +121,13 @@ function renderNode(node: TiptapNode, index: number): React.ReactNode {
     case "image":
       return (
         <figure key={index} className="mb-4">
-          <img
+          <Image
             src={node.attrs?.src as string}
-            alt={node.attrs?.alt as string}
+            alt={(node.attrs?.alt as string) ?? ""}
+            width={800}
+            height={400}
             className="rounded-lg"
+            unoptimized
           />
         </figure>
       );
