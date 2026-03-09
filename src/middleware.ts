@@ -1,46 +1,99 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-/**
- * Middleware for security and routing.
- *
- * Handles:
- * - CSRF token validation for mutating requests
- * - Secure headers enforcement
- * - Route protection (extendable)
- */
+const PUBLIC_ROUTES = [
+  "/",
+  "/blog",
+  "/soluciones",
+  "/comercios",
+  "/comercios/login",
+  "/comercios/registro",
+];
 
-const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+function isPublicRoute(pathname: string): boolean {
+  if (PUBLIC_ROUTES.includes(pathname)) return true;
+  if (pathname.startsWith("/blog/")) return true;
+  if (pathname.startsWith("/soluciones/")) return true;
+  return false;
+}
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const method = request.method;
 
-  // Skip CSRF check for API routes using safe HTTP methods
-  if (pathname.startsWith("/api/") && !SAFE_METHODS.has(method)) {
-    const csrfToken = request.headers.get("x-csrf-token");
-    const cookieToken = request.cookies.get("csrf-token")?.value;
+  if (isPublicRoute(pathname)) {
+    return NextResponse.next();
+  }
 
-    // Validate CSRF token for state-mutating API requests
-    if (!csrfToken || !cookieToken || csrfToken !== cookieToken) {
-      return NextResponse.json(
-        { message: "Invalid CSRF token", success: false },
-        { status: 403 }
-      );
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+            response = NextResponse.next({
+              request: { headers: request.headers },
+            });
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+
+  if (pathname.startsWith("/admin")) {
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin");
+
+    if (!roles || roles.length === 0) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
     }
   }
 
-  const response = NextResponse.next();
+  if (pathname.startsWith("/comercios/") && !isPublicRoute(pathname)) {
+    const { data: membership } = await supabase
+      .from("commerce_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
 
-  // Add CSRF token cookie if not present
-  if (!request.cookies.get("csrf-token")) {
-    const token = crypto.randomUUID();
-    response.cookies.set("csrf-token", token, {
-      httpOnly: false, // Must be readable by JS to send as header
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24, // 24 hours
-    });
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin");
+
+    const isAdmin = roles && roles.length > 0;
+    const hasMembership = membership && membership.length > 0;
+
+    if (!isAdmin && !hasMembership) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/comercios";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;
@@ -48,13 +101,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
