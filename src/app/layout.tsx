@@ -1,62 +1,71 @@
 import type { Metadata, Viewport } from "next";
-
+import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { Providers } from "@/components/layout/providers";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: {
-    default: "CMS App",
-    template: "%s | CMS App",
+    default: "GenioX Commerce",
+    template: "%s | GenioX Commerce",
   },
-  description: "A robust CMS application built with Next.js",
-  keywords: ["CMS", "Next.js", "TypeScript", "Tailwind CSS"],
-  authors: [{ name: "CMS Team" }],
-  creator: "CMS Team",
+  description:
+    "Plataforma de marketplace B2B para comercios - elgeniox.com",
+  keywords: [
+    "marketplace",
+    "B2B",
+    "comercio",
+    "GenioX",
+    "Bolivia",
+    "ecommerce",
+  ],
+  authors: [{ name: "GenioX Team" }],
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
   ),
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "es_BO",
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: "CMS App",
-    title: "CMS App",
-    description: "A robust CMS application built with Next.js",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "CMS App",
-    description: "A robust CMS application built with Next.js",
-  },
-  robots: {
-    index: true,
-    follow: true,
+    siteName: "GenioX Commerce",
+    title: "GenioX Commerce",
+    description:
+      "Plataforma de marketplace B2B para comercios - elgeniox.com",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
+  themeColor: "#3B82F6",
   width: "device-width",
   initialScale: 1,
 };
 
-interface RootLayoutProps {
+export default function RootLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang="es" className="dark" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
+      >
         <Providers>
           <div className="relative flex min-h-screen flex-col">
             <main className="flex-1">{children}</main>
           </div>
-          <Toaster />
+          <Toaster
+            theme="dark"
+            position="top-right"
+            richColors
+            closeButton
+          />
         </Providers>
       </body>
     </html>

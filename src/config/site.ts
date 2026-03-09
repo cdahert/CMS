@@ -1,22 +1,8 @@
-import { type NavItem } from "@/types";
-
 export const siteConfig = {
-  name: "CMS App",
-  description: "A robust, scalable and secure CMS built with Next.js",
+  name: "GenioX Commerce",
+  description:
+    "Plataforma de marketplace B2B para comercios - elgeniox.com",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   ogImage: "/og.jpg",
-  links: {
-    github: "https://github.com",
-  },
+  domain: "elgeniox.com",
 } as const;
-
-export const mainNav: NavItem[] = [
-  {
-    title: "Home",
-    href: "/",
-  },
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-  },
-];
