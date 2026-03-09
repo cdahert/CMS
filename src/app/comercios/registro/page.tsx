@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Store } from "lucide-react";
@@ -65,7 +65,7 @@ export default function ComerciosRegistro() {
   };
 
   // Handle OAuth callback: create commerce + member
-  useState(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("callback") !== "true") return;
 
@@ -118,7 +118,7 @@ export default function ComerciosRegistro() {
       toast.success("Comercio registrado exitosamente.");
       window.location.href = "/comercios/dashboard";
     })();
-  });
+  }, []);
 
   const inputClasses =
     "w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";

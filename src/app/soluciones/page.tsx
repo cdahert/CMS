@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { createServerSupabaseClient } from "@/integrations/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Soluciones",
   description:

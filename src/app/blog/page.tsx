@@ -4,6 +4,8 @@ import Image from "next/image";
 import { createServerSupabaseClient } from "@/integrations/supabase/server";
 import { formatDate } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blog",
   description:
