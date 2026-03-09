@@ -18,9 +18,7 @@ import {
   Loader2,
   X,
   Save,
-  Filter,
   CreditCard,
-  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,10 +33,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import type { Database } from "@/integrations/supabase/types";
-
-type Settlement = Database["public"]["Tables"]["settlements"]["Row"];
-
 const supabase = createClient();
 
 // MOCK DATA for chart

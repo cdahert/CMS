@@ -24,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Switch from "@radix-ui/react-switch";
-import * as Select from "@radix-ui/react-select";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -82,7 +81,7 @@ export default function AdminOffers() {
     },
   });
 
-  const { data: products = [] } = useQuery({
+  const _products = useQuery({
     queryKey: ["admin-products-select"],
     queryFn: async () => {
       const { data, error } = await supabase

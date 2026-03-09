@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { createClient } from "@/integrations/supabase/client";
 import { useCommerceId } from "@/hooks/useCommerceId";
-import { cn } from "@/lib/utils/cn";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { toast } from "sonner";
 

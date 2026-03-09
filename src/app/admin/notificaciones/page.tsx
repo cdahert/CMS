@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { toast } from "sonner";
@@ -11,13 +9,10 @@ import {
   Bell,
   Send,
   Trash2,
-  Loader2,
   CheckCheck,
   Search,
   Plus,
   X,
-  Save,
-  Mail,
   AlertTriangle,
   Info,
   CheckCircle,
@@ -27,8 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-
-const supabase = createClient();
 
 const typeIcons: Record<string, React.ElementType> = {
   info: Info,
