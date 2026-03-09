@@ -68,7 +68,7 @@ export default function CommerceProducts() {
   const [movementQty, setMovementQty] = useState(0);
   const [movementReason, setMovementReason] = useState("");
 
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading, error: productsError } = useQuery({
     queryKey: ["commerce-products", commerceId],
     enabled: !!commerceId,
     queryFn: async () => {
@@ -551,6 +551,25 @@ export default function CommerceProducts() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Error State */}
+      {productsError && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Error al cargar productos</p>
+              <p className="text-xs text-muted-foreground mt-1">{productsError.message}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["commerce-products"] })}
+            className="mt-3 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {/* Products Table */}
       {isLoading ? (

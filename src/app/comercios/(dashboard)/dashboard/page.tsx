@@ -23,6 +23,7 @@ import {
 import { createClient } from "@/integrations/supabase/client";
 import { useCommerceId } from "@/hooks/useCommerceId";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 10 },
@@ -37,7 +38,7 @@ export default function CommerceDashboard() {
   const { commerceId } = useCommerceId();
   const supabase = createClient();
 
-  const { data: commerce } = useQuery({
+  const { data: commerce, error: commerceQueryError } = useQuery({
     queryKey: ["commerce", commerceId],
     enabled: !!commerceId,
     queryFn: async () => {
@@ -51,7 +52,7 @@ export default function CommerceDashboard() {
     },
   });
 
-  const { data: products } = useQuery({
+  const { data: products, error: productsQueryError } = useQuery({
     queryKey: ["commerce-products-summary", commerceId],
     enabled: !!commerceId,
     queryFn: async () => {
@@ -151,6 +152,11 @@ export default function CommerceDashboard() {
       initial="hidden"
       animate="visible"
     >
+      {/* Connection Status */}
+      <motion.div variants={fadeIn} custom={0}>
+        <ConnectionStatus />
+      </motion.div>
+
       {/* Header */}
       <motion.div variants={fadeIn} custom={0}>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
@@ -158,6 +164,25 @@ export default function CommerceDashboard() {
           Bienvenido, {commerce?.name ?? "tu comercio"}
         </p>
       </motion.div>
+
+      {/* Query Errors */}
+      {(commerceQueryError || productsQueryError) && (
+        <motion.div
+          variants={fadeIn}
+          custom={0}
+          className="rounded-xl border border-destructive/30 bg-destructive/5 p-4"
+        >
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Error al cargar datos</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {commerceQueryError?.message || productsQueryError?.message}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
