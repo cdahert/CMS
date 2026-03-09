@@ -1,45 +1,54 @@
 "use client";
 
+import { useState } from "react";
 import { Shield, Store } from "lucide-react";
 import { createClient } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function MainLogin() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"admin" | "commerce" | null>(
+    null
+  );
 
-  useEffect(() => {
-    const supabase = createClient();
-
-    async function checkSession() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const role = sessionStorage.getItem("gx-login-role");
-      if (role === "admin") {
-        router.replace("/admin");
-      } else if (role === "commerce") {
-        router.replace("/comercios/dashboard");
-      }
+  const handleLogin = async () => {
+    if (!selectedRole) {
+      toast.error("Selecciona un rol para continuar.");
+      return;
+    }
+    if (!email || !password) {
+      toast.error("Ingresa email y contraseña.");
+      return;
     }
 
-    checkSession();
-  }, [router]);
-
-  const handleLogin = async (role: "admin" | "commerce") => {
-    sessionStorage.setItem("gx-login-role", role);
+    setLoading(true);
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        queryParams: { prompt: "select_account" },
-        redirectTo: `${window.location.origin}/`,
-      },
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+
+    if (error) {
+      toast.error("Error al iniciar sesión: " + error.message);
+      setLoading(false);
+      return;
+    }
+
+    sessionStorage.setItem("gx-login-role", selectedRole);
+    if (selectedRole === "admin") {
+      router.push("/admin");
+    } else {
+      router.push("/comercios/dashboard");
+    }
   };
+
+  const inputClasses =
+    "w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -47,7 +56,7 @@ export default function MainLogin() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-12 text-center"
+        className="mb-8 text-center"
       >
         <h1 className="gradient-primary mb-2 text-4xl font-extrabold tracking-tight sm:text-5xl">
           GenioX Commerce
@@ -57,47 +66,90 @@ export default function MainLogin() {
         </p>
       </motion.div>
 
-      <div className="grid w-full max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          onClick={() => handleLogin("admin")}
-          className="group flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10"
-        >
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-            <Shield className="h-8 w-8 text-primary" />
-          </div>
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-card-foreground">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-sm"
+      >
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setSelectedRole("admin")}
+            className={`flex flex-col items-center gap-2 rounded-lg border p-4 transition-all ${
+              selectedRole === "admin"
+                ? "border-primary bg-primary/10"
+                : "border-border hover:border-primary/50"
+            }`}
+          >
+            <Shield
+              className={`h-6 w-6 ${selectedRole === "admin" ? "text-primary" : "text-muted-foreground"}`}
+            />
+            <span
+              className={`text-sm font-medium ${selectedRole === "admin" ? "text-primary" : "text-muted-foreground"}`}
+            >
               Administrador
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Gestión del marketplace
-            </p>
-          </div>
-        </motion.button>
+            </span>
+          </button>
 
-        <motion.button
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          onClick={() => handleLogin("commerce")}
-          className="group flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10"
-        >
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-            <Store className="h-8 w-8 text-primary" />
-          </div>
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-card-foreground">
+          <button
+            type="button"
+            onClick={() => setSelectedRole("commerce")}
+            className={`flex flex-col items-center gap-2 rounded-lg border p-4 transition-all ${
+              selectedRole === "commerce"
+                ? "border-primary bg-primary/10"
+                : "border-border hover:border-primary/50"
+            }`}
+          >
+            <Store
+              className={`h-6 w-6 ${selectedRole === "commerce" ? "text-primary" : "text-muted-foreground"}`}
+            />
+            <span
+              className={`text-sm font-medium ${selectedRole === "commerce" ? "text-primary" : "text-muted-foreground"}`}
+            >
               Comercio
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Autoatención para tiendas
-            </p>
+            </span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@email.com"
+              className={inputClasses}
+            />
           </div>
-        </motion.button>
-      </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className={inputClasses}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleLogin();
+              }}
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+        </button>
+      </motion.div>
     </div>
   );
 }

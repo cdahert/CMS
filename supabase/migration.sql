@@ -1,5 +1,68 @@
+-- =============================================
 -- GenioX Commerce Platform - Complete Database Schema
--- 18 tables with RLS, 4 SECURITY DEFINER functions, enums, triggers, and seed data
+-- 18 tables, 4 functions, enums, triggers, storage, seed data + admin user
+--
+-- INSTRUCCIONES:
+-- 1. Crear un proyecto nuevo en Supabase
+-- 2. Ir a SQL Editor y pegar todo este archivo
+-- 3. Click en "Run"
+-- 4. Ir a Authentication > Providers y habilitar "Email"
+-- 5. Ir a Authentication > Settings y desactivar "Confirm email" (opcional)
+-- 6. Crear un usuario desde Authentication > Users > Add user:
+--    Email: admin@geniox.com  Password: (la que quieras)
+-- 7. Copiar el UUID del usuario creado y reemplazar 'REEMPLAZAR_CON_UUID_DEL_USUARIO'
+--    en la última línea de este archivo
+-- 8. Ejecutar SOLO esa última línea en el SQL Editor para asignar el rol admin
+-- =============================================
+
+-- =============================================
+-- 0. LIMPIEZA - Eliminar todo si ya existe
+-- =============================================
+
+-- Eliminar triggers
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP TRIGGER IF EXISTS trigger_check_stock_and_deactivate ON public.products;
+
+-- Eliminar policies de storage
+DROP POLICY IF EXISTS "Public can view product images" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload product images" ON storage.objects;
+DROP POLICY IF EXISTS "Public can view commerce logos" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload commerce logos" ON storage.objects;
+DROP POLICY IF EXISTS "Public can view blog images" ON storage.objects;
+DROP POLICY IF EXISTS "Admin can upload blog images" ON storage.objects;
+
+-- Eliminar storage buckets
+DELETE FROM storage.buckets WHERE id IN ('products', 'commerces', 'blog');
+
+-- Eliminar tablas (orden inverso por dependencias)
+DROP TABLE IF EXISTS public.bundle_items CASCADE;
+DROP TABLE IF EXISTS public.bundles CASCADE;
+DROP TABLE IF EXISTS public.offer_redemptions CASCADE;
+DROP TABLE IF EXISTS public.offer_commerces CASCADE;
+DROP TABLE IF EXISTS public.offer_products CASCADE;
+DROP TABLE IF EXISTS public.offers CASCADE;
+DROP TABLE IF EXISTS public.inventory_movements CASCADE;
+DROP TABLE IF EXISTS public.prices CASCADE;
+DROP TABLE IF EXISTS public.products CASCADE;
+DROP TABLE IF EXISTS public.settlements CASCADE;
+DROP TABLE IF EXISTS public.activity_log CASCADE;
+DROP TABLE IF EXISTS public.blog_posts CASCADE;
+DROP TABLE IF EXISTS public.commission_matrix_history CASCADE;
+DROP TABLE IF EXISTS public.commission_matrix CASCADE;
+DROP TABLE IF EXISTS public.commerce_members CASCADE;
+DROP TABLE IF EXISTS public.commerces CASCADE;
+DROP TABLE IF EXISTS public.user_roles CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+
+-- Eliminar funciones
+DROP FUNCTION IF EXISTS public.has_role(uuid, app_role);
+DROP FUNCTION IF EXISTS public.is_commerce_member(uuid, uuid);
+DROP FUNCTION IF EXISTS public.handle_new_user();
+DROP FUNCTION IF EXISTS public.check_stock_and_deactivate();
+
+-- Eliminar enums
+DROP TYPE IF EXISTS app_role;
+DROP TYPE IF EXISTS commerce_plan;
 
 -- =============================================
 -- 1. ENUMS
@@ -11,7 +74,6 @@ CREATE TYPE commerce_plan AS ENUM ('inicial', 'silver', 'gold', 'premium');
 -- 2. SECURITY DEFINER FUNCTIONS
 -- =============================================
 
--- Function 1: has_role
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
 RETURNS boolean
 LANGUAGE plpgsql
@@ -26,7 +88,6 @@ BEGIN
 END;
 $$;
 
--- Function 2: is_commerce_member
 CREATE OR REPLACE FUNCTION public.is_commerce_member(_user_id uuid, _commerce_id uuid)
 RETURNS boolean
 LANGUAGE plpgsql
@@ -41,7 +102,6 @@ BEGIN
 END;
 $$;
 
--- Function 3: handle_new_user (trigger function)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -60,7 +120,6 @@ BEGIN
 END;
 $$;
 
--- Function 4: check_stock_and_deactivate (trigger function)
 CREATE OR REPLACE FUNCTION public.check_stock_and_deactivate()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -92,10 +151,8 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can view all profiles" ON public.profiles
   FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
-
 CREATE POLICY "Users can update own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
@@ -111,7 +168,6 @@ ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all roles" ON public.user_roles
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Users can view own roles" ON public.user_roles
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -134,10 +190,8 @@ ALTER TABLE public.commerces ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all commerces" ON public.commerces
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can view their commerce" ON public.commerces
   FOR SELECT USING (public.is_commerce_member(auth.uid(), id));
-
 CREATE POLICY "Owner can update own commerce" ON public.commerces
   FOR UPDATE USING (auth.uid() = owner_id);
 
@@ -153,7 +207,6 @@ ALTER TABLE public.commerce_members ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all members" ON public.commerce_members
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can view co-members" ON public.commerce_members
   FOR SELECT USING (public.is_commerce_member(auth.uid(), commerce_id));
 
@@ -175,7 +228,6 @@ ALTER TABLE public.commission_matrix ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage commission matrix" ON public.commission_matrix
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Authenticated can view commission matrix" ON public.commission_matrix
   FOR SELECT USING (auth.uid() IS NOT NULL);
 
@@ -214,11 +266,9 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all products" ON public.products
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage commerce products" ON public.products
   FOR ALL USING (public.is_commerce_member(auth.uid(), commerce_id));
 
--- Trigger for stock deactivation
 CREATE TRIGGER trigger_check_stock_and_deactivate
   BEFORE UPDATE ON public.products
   FOR EACH ROW
@@ -238,7 +288,6 @@ ALTER TABLE public.prices ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all prices" ON public.prices
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage commerce prices" ON public.prices
   FOR ALL USING (
     EXISTS (
@@ -263,10 +312,8 @@ ALTER TABLE public.inventory_movements ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all inventory movements" ON public.inventory_movements
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can insert and view movements" ON public.inventory_movements
   FOR SELECT USING (public.is_commerce_member(auth.uid(), commerce_id));
-
 CREATE POLICY "Members can create movements" ON public.inventory_movements
   FOR INSERT WITH CHECK (public.is_commerce_member(auth.uid(), commerce_id));
 
@@ -292,12 +339,10 @@ ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all offers" ON public.offers
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage commerce offers" ON public.offers
   FOR ALL USING (
     commerce_id IS NOT NULL AND public.is_commerce_member(auth.uid(), commerce_id)
   );
-
 CREATE POLICY "Members can view global offers" ON public.offers
   FOR SELECT USING (commerce_id IS NULL AND auth.uid() IS NOT NULL);
 
@@ -311,7 +356,6 @@ ALTER TABLE public.offer_products ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage offer products" ON public.offer_products
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage offer products" ON public.offer_products
   FOR ALL USING (
     EXISTS (
@@ -332,7 +376,6 @@ ALTER TABLE public.offer_commerces ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage offer commerces" ON public.offer_commerces
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can view offer commerces" ON public.offer_commerces
   FOR SELECT USING (public.is_commerce_member(auth.uid(), commerce_id));
 
@@ -348,7 +391,6 @@ ALTER TABLE public.offer_redemptions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all redemptions" ON public.offer_redemptions
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage commerce redemptions" ON public.offer_redemptions
   FOR ALL USING (public.is_commerce_member(auth.uid(), commerce_id));
 
@@ -366,7 +408,6 @@ ALTER TABLE public.bundles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all bundles" ON public.bundles
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage commerce bundles" ON public.bundles
   FOR ALL USING (public.is_commerce_member(auth.uid(), commerce_id));
 
@@ -381,7 +422,6 @@ ALTER TABLE public.bundle_items ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all bundle items" ON public.bundle_items
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can manage bundle items" ON public.bundle_items
   FOR ALL USING (
     EXISTS (
@@ -417,7 +457,6 @@ ALTER TABLE public.settlements ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all settlements" ON public.settlements
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Members can view commerce settlements" ON public.settlements
   FOR SELECT USING (public.is_commerce_member(auth.uid(), commerce_id));
 
@@ -434,10 +473,8 @@ ALTER TABLE public.activity_log ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all activity logs" ON public.activity_log
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Users can view own activity" ON public.activity_log
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own activity" ON public.activity_log
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
@@ -461,7 +498,6 @@ ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin can manage all blog posts" ON public.blog_posts
   FOR ALL USING (public.has_role(auth.uid(), 'admin'));
-
 CREATE POLICY "Public can view published posts" ON public.blog_posts
   FOR SELECT USING (published = true);
 
@@ -469,7 +505,6 @@ CREATE POLICY "Public can view published posts" ON public.blog_posts
 -- 4. TRIGGERS
 -- =============================================
 
--- Trigger for new user profile creation
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
@@ -494,21 +529,24 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('products', 'products', t
 INSERT INTO storage.buckets (id, name, public) VALUES ('commerces', 'commerces', true);
 INSERT INTO storage.buckets (id, name, public) VALUES ('blog', 'blog', true);
 
--- Storage policies
 CREATE POLICY "Public can view product images" ON storage.objects
   FOR SELECT USING (bucket_id = 'products');
-
 CREATE POLICY "Authenticated users can upload product images" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'products' AND auth.uid() IS NOT NULL);
-
 CREATE POLICY "Public can view commerce logos" ON storage.objects
   FOR SELECT USING (bucket_id = 'commerces');
-
 CREATE POLICY "Authenticated users can upload commerce logos" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'commerces' AND auth.uid() IS NOT NULL);
-
 CREATE POLICY "Public can view blog images" ON storage.objects
   FOR SELECT USING (bucket_id = 'blog');
-
 CREATE POLICY "Admin can upload blog images" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'blog' AND auth.uid() IS NOT NULL);
+
+-- =============================================
+-- 7. ASIGNAR ROL ADMIN
+-- =============================================
+-- PASO 1: Crear usuario desde Supabase Dashboard > Authentication > Users > Add user
+-- PASO 2: Copiar el UUID del usuario y reemplazar abajo
+-- PASO 3: Ejecutar SOLO esta línea en el SQL Editor
+
+-- INSERT INTO public.user_roles (user_id, role) VALUES ('REEMPLAZAR_CON_UUID_DEL_USUARIO', 'admin');
