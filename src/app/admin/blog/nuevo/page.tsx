@@ -39,16 +39,18 @@ export default function AdminBlogNew() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
       const { error } = await supabase.from("blog_posts").insert({
         title: form.title,
         slug: form.slug || slugify(form.title),
         excerpt: form.excerpt || null,
         content: form.content,
-        cover_url: form.cover_url || null,
+        cover_image_url: form.cover_url || null,
+        category: "general",
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()) : [],
-        status: form.status,
+        published: form.status === "published",
         published_at: form.status === "published" ? new Date().toISOString() : null,
-        author_id: user?.id ?? null,
+        author_id: user.id,
       });
       if (error) throw error;
     },

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 // MOCK DATA - placeholder for ERP integration
 // This endpoint will handle incoming webhooks from external ERP systems.
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // 2. Route to the appropriate handler based on event type
     // 3. Process inventory updates, order syncs, etc.
     // 4. Store the event in an activity log
-    console.log("[Webhook] Received ERP webhook:", {
+    console.warn("[Webhook] Received ERP webhook:", {
       event: body.event ?? "unknown",
       timestamp: new Date().toISOString(),
     });

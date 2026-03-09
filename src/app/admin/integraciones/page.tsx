@@ -5,13 +5,10 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 import { toast } from "sonner";
 import {
-  Plug,
   CheckCircle,
   XCircle,
-  ExternalLink,
   Settings,
   Save,
-  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

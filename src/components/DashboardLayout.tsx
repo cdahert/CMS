@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Store,
@@ -134,10 +135,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             {user?.user_metadata?.avatar_url && (
-              <img
+              <Image
                 src={user.user_metadata.avatar_url}
                 alt="Avatar"
+                width={32}
+                height={32}
                 className="h-8 w-8 rounded-full"
+                unoptimized
               />
             )}
             <span className="text-sm text-muted-foreground">

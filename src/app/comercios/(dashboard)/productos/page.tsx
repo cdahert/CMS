@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 import {
   Package,
   Plus,
@@ -590,10 +591,13 @@ export default function CommerceProducts() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {product.image_url ? (
-                          <img
+                          <Image
                             src={product.image_url}
                             alt={product.name}
+                            width={40}
+                            height={40}
                             className="h-10 w-10 rounded-lg object-cover"
+                            unoptimized
                           />
                         ) : (
                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">

@@ -2,15 +2,11 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import {
   Search,
   Activity,
-  Loader2,
-  Filter,
   User,
   Store,
   CreditCard,
@@ -20,8 +16,6 @@ import {
   Bell,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-const supabase = createClient();
 
 const eventTypeIcons: Record<string, React.ElementType> = {
   user: User,
